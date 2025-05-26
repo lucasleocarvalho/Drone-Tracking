@@ -1,7 +1,6 @@
 import rclpy
 from rclpy.node import Node
 import cv2 as cv
-from ultralytics import YOLO
 from sensor_msgs.msg import Image
 from cv_bridge import CvBridge
 import os
@@ -13,65 +12,45 @@ class Detection(Node):
 
         # Inicializa câmera
         self.cap = cv.VideoCapture(0)
-        self.cap.set(cv.CAP_PROP_FPS, 60)
+        self.cap.set(cv.CAP_PROP_FPS, 30)  # Define na câmera, se ela suportar
         self.cap.set(cv.CAP_PROP_FRAME_WIDTH, 640)
         self.cap.set(cv.CAP_PROP_FRAME_HEIGHT, 480)
 
         fps = self.cap.get(cv.CAP_PROP_FPS)
-        self.get_logger().info(f"FPS configurado: {fps}")
+        self.get_logger().info(f"FPS configurado na câmera: {fps}")
 
-        # Carrega o modelo
-        script_dir = os.path.dirname(os.path.abspath(__file__))
-        #model_path = os.path.join(script_dir, "..", "net_train", "weights", "best.pt")
-        #model_path = os.path.abspath(model_path)
-        #self.model = YOLO(model_path)
-
-        # Cria janela única
-        #cv.namedWindow("Detecção YOLO", cv.WINDOW_NORMAL)
-
-        #Criação de publishers e subscribers
+        # Publisher de imagem
         self.camera_publishing = self.create_publisher(Image, '/camera', 10)
         self.bridge = CvBridge()
 
-
-        self.capture_callback()
+        # Timer para capturar e publicar a cada ~33ms (30 FPS)
+        timer_period = 1.0 / 30.0  # 33ms
+        self.timer = self.create_timer(timer_period, self.capture_callback)
 
     def capture_callback(self):
         ret, frame = self.cap.read()
-        frame_count = 0
-        annotated_frame = None
-        while True:
-            ret, frame = self.cap.read()
-            if not ret:
-                print("Erro ao capturar frame")
-                break
+        if not ret:
+            self.get_logger().error("Erro ao capturar frame da câmera")
+            return
 
-            frame_count += 1
+        # Publica imagem no tópico
+        ros_image = self.bridge.cv2_to_imgmsg(frame, "bgr8")
+        self.camera_publishing.publish(ros_image)
 
-            #if frame_count % 3 == 0:
-                #results = self.model(frame, conf=0.5)
-                #annotated_frame = results[0].plot()
-
-            #frame_to_show = annotated_frame if annotated_frame is not None else frame
-
-            # Mostra o frame capturado
-            #cv.imshow('Detecção YOLO', frame)
-            rosimg = self.bridge.cv2_to_imgmsg(frame, "bgr8")
-            self.camera_publishing.publish(rosimg)
-
-            # Sai do loop se a tecla 'q' for pressionada
-            if cv.waitKey(1) & 0xFF == ord('q'):
-                break
-
-        # Libera a câmera e fecha as janelas
+    def destroy_node(self):
+        # Libera recursos ao encerrar
         self.cap.release()
         cv.destroyAllWindows()
+        super().destroy_node()
 
 
 def main(args=None):
     rclpy.init(args=args)
     node = Detection()
-    rclpy.spin(node)
+    try:
+        rclpy.spin(node)
+    except KeyboardInterrupt:
+        pass
     node.destroy_node()
     rclpy.shutdown()
 
