@@ -2,6 +2,8 @@ import rclpy
 from rclpy.node import Node
 import cv2 as cv
 from ultralytics import YOLO
+from sensor_msgs.msg import Image
+from cv_bridge import CvBridge
 import os
 
 
@@ -20,12 +22,18 @@ class Detection(Node):
 
         # Carrega o modelo
         script_dir = os.path.dirname(os.path.abspath(__file__))
-        model_path = os.path.join(script_dir, "..", "net_train", "weights", "best.pt")
-        model_path = os.path.abspath(model_path)
-        self.model = YOLO(model_path)
+        #model_path = os.path.join(script_dir, "..", "net_train", "weights", "best.pt")
+        #model_path = os.path.abspath(model_path)
+        #self.model = YOLO(model_path)
 
         # Cria janela única
-        cv.namedWindow("Detecção YOLO", cv.WINDOW_NORMAL)
+        #cv.namedWindow("Detecção YOLO", cv.WINDOW_NORMAL)
+
+        #Criação de publishers e subscribers
+        self.camera_publishing = self.create_publisher(Image, '/camera', 10)
+        self.bridge = CvBridge()
+
+
         self.capture_callback()
 
     def capture_callback(self):
@@ -40,14 +48,16 @@ class Detection(Node):
 
             frame_count += 1
 
-            if frame_count % 3 == 0:
-                results = self.model(frame, conf=0.5)
-                annotated_frame = results[0].plot()
+            #if frame_count % 3 == 0:
+                #results = self.model(frame, conf=0.5)
+                #annotated_frame = results[0].plot()
 
-            frame_to_show = annotated_frame if annotated_frame is not None else frame
+            #frame_to_show = annotated_frame if annotated_frame is not None else frame
 
             # Mostra o frame capturado
-            cv.imshow('Detecção YOLO', frame_to_show)
+            #cv.imshow('Detecção YOLO', frame)
+            rosimg = self.bridge.cv2_to_imgmsg(frame, "bgr8")
+            self.camera_publishing.publish(rosimg)
 
             # Sai do loop se a tecla 'q' for pressionada
             if cv.waitKey(1) & 0xFF == ord('q'):
