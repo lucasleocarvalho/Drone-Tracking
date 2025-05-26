@@ -1,7 +1,4 @@
-<<<<<<< HEAD
+# Ignorar ambiente virtual Python
 rosvenv/
-=======
-#Venv
-/rosvenv
-
->>>>>>> ae9383c2 (Remove rosvenv do versionamento)
+*.pyc
+__pycache__/
