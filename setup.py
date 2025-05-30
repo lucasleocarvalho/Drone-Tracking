@@ -13,6 +13,7 @@ setup(
         ('share/' + package_name, ['package.xml']),
         ('share/' + package_name + '/launch', glob('launch/*.py')),
         ('lib/' + package_name, glob('scripts/*.py')),  
+        (f'share/{package_name}/net_train/weights', glob('net_train/weights/*')),
     ],
     install_requires=['setuptools'],
     zip_safe=True,
