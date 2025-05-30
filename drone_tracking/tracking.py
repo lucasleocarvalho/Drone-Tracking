@@ -47,14 +47,14 @@ class Detection(Node):
         
         #Detecção com YOLO
         self.frame_c += 1
-        if self.frame_c % 3 == 0:
+        if self.frame_c % 10 == 0:
             results = self.model(frame, verbose=False, conf=0.5)
-            self.annoted_frame = np.array(results[0].plot())
-        #else:
-        #    self.annoted_frame = None
+            self.annoted_frame = results[0].plot()
+        else:
+            self.annoted_frame = None
 
         #Frame para exibição
-        frame_show = self.annoted_frame if self.annoted_frame is not None else frame
+        frame_show = np.array(self.annoted_frame if self.annoted_frame is not None else frame)
 
         # Converte para imagem comprimida (JPEG)
         ros_compressed_image = self.bridge.cv2_to_compressed_imgmsg(frame_show, dst_format='jpeg')
