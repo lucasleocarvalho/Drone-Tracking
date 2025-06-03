@@ -33,7 +33,7 @@ class Detection(Node):
 
         #Variáveis de controle
         self.frame_c = 0
-        #self.annoted_frame = None
+        self.annoted_frame = None
 
         #Timer para 30 FPS
         timer_period = 1.0 / 30.0
@@ -46,12 +46,12 @@ class Detection(Node):
             return
         
         #Detecção com YOLO
-        #self.frame_c += 1
-        #if self.frame_c % 1 == 1:
-        #    results = self.model(frame, verbose=False, conf=0.5)
-        #    self.annoted_frame = np.array(results[0].plot())
-        #else:
-        #    self.annoted_frame = None
+        self.frame_c += 1
+        if self.frame_c % 1 == 1:
+            results = self.model(frame, verbose=False, conf=0.5)
+            self.annoted_frame = np.array(results[0].plot())
+        else:
+            self.annoted_frame = None
 
         #Frame para exibição
         #frame_show = self.annoted_frame if self.annoted_frame is not None else frame
