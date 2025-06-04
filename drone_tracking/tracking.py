@@ -20,9 +20,9 @@ class Detection(Node):
         self.cap.set(cv.CAP_PROP_FRAME_HEIGHT, 480)
 
         #Import da rede neural
-        package_dir = get_package_share_directory('drone_tracking')
-        model_path = os.path.join(package_dir, 'net_train', 'weights', 'best.pt')
-        self.model = YOLO(model_path)
+       # package_dir = get_package_share_directory('drone_tracking')
+       # model_path = os.path.join(package_dir, 'net_train', 'weights', 'best.pt')
+       # self.model = YOLO(model_path)
 
         fps = self.cap.get(cv.CAP_PROP_FPS)
         self.get_logger().info(f"FPS configurado na câmera: {fps}")
