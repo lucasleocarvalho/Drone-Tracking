@@ -18,10 +18,12 @@ class Detection(Node):
         qos = QoSProfile(reliability=ReliabilityPolicy.BEST_EFFORT, history=HistoryPolicy.KEEP_LAST, depth=1)
 
         # Inicializa câmera
-        self.cap = cv.VideoCapture(0)
+        self.cap = cv.VideoCapture(0, cv.CAP_V4L2)
         self.cap.set(cv.CAP_PROP_FPS, 30)
         self.cap.set(cv.CAP_PROP_FRAME_WIDTH, 640)
         self.cap.set(cv.CAP_PROP_FRAME_HEIGHT, 480)
+        self.cap.set(cv.CAP_PROP_BUFFERSIZE, 1)
+
 
         fps = self.cap.get(cv.CAP_PROP_FPS)
         self.get_logger().info(f"FPS configurado na câmera: {fps}")

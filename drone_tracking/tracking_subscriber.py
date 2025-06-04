@@ -1,5 +1,6 @@
 import rclpy
 from rclpy.node import Node
+from rclpy.qos import QoSProfile, ReliabilityPolicy, HistoryPolicy
 import cv2 as cv
 from sensor_msgs.msg import CompressedImage
 from cv_bridge import CvBridge
@@ -16,12 +17,15 @@ class CameraShow(Node):
         cv.namedWindow("Detecção YOLO", cv.WINDOW_NORMAL)
         self.bridge = CvBridge()
 
+        #Definição de QoS pra reduzir delay na transmissão da câmera
+        qos = QoSProfile(reliability=ReliabilityPolicy.BEST_EFFORT, history=HistoryPolicy.KEEP_LAST, depth=1)
+
         #Definição de variáveis
         self.frame_c = 0
         self.annoted_frame = None
 
         # Subscriber para imagem comprimida
-        self.camera_subscription = self.create_subscription(CompressedImage, '/camera/compressed', self.image_callback, 10)
+        self.camera_subscription = self.create_subscription(CompressedImage, '/camera/compressed', self.image_callback, qos)
     
     def image_callback(self, msg):
         # Converte imagem comprimida para cv2
