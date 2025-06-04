@@ -4,6 +4,10 @@ import cv2 as cv
 from sensor_msgs.msg import CompressedImage
 from cv_bridge import CvBridge
 import numpy as np
+from ultralytics import YOLO
+from ament_index_python import get_package_share_directory
+import os
+
 
 class CameraShow(Node):
     
@@ -12,19 +16,35 @@ class CameraShow(Node):
         cv.namedWindow("Detecção YOLO", cv.WINDOW_NORMAL)
         self.bridge = CvBridge()
 
+        #Definição de variáveis
+        self.frame_c = 0
+        self.annoted_frame = None
+
         # Subscriber para imagem comprimida
-        self.camera_subscription = self.create_subscription(
-            CompressedImage,
-            '/camera/compressed',
-            self.image_callback,
-            10)
+        self.camera_subscription = self.create_subscription(CompressedImage, '/camera/compressed', self.image_callback, 10)
     
     def image_callback(self, msg):
         # Converte imagem comprimida para cv2
         np_arr = np.frombuffer(msg.data, np.uint8)
-        cv_image = cv.imdecode(np_arr, cv.IMREAD_COLOR)
+        frame = cv.imdecode(np_arr, cv.IMREAD_COLOR)
 
-        cv.imshow('Detecção YOLO', cv_image)
+        #Import da rede neural
+        package_dir = get_package_share_directory('drone_tracking')
+        model_path = os.path.join(package_dir, 'net_train', 'weights', 'best.pt')
+        self.model = YOLO(model_path)
+
+        #Detecção com YOLO
+        #self.frame_c += 1
+        #if self.frame_c % 10 == 0:
+        #    results = self.model(frame, verbose=False, conf=0.5)
+        #    self.annoted_frame = np.array(results[0].plot())
+        #else:
+        #    self.annoted_frame = None
+
+        #Frame para exibição
+        #frame_show = self.annoted_frame if self.annoted_frame is not None else frame
+
+        cv.imshow('Detecção YOLO', frame)
         if cv.waitKey(1) == ord('q'):
             self.get_logger().info('Fechando janela')
             rclpy.shutdown()
