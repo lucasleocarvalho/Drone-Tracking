@@ -38,20 +38,26 @@ class CameraShow(Node):
         self.model = YOLO(model_path)
 
         #Detecção com YOLO
-        #self.frame_c += 1
-        #if self.frame_c % 10 == 0:
-        #    results = self.model(frame, verbose=False, conf=0.5)
-        #    self.annoted_frame = np.array(results[0].plot())
-        #else:
-        #    self.annoted_frame = None
+        self.frame_c += 1
+        if self.frame_c % 3 == 0:
+            results = self.model(frame, verbose=False, conf=0.5)
+            self.annoted_frame = np.array(results[0].plot())
+        else:
+            self.annoted_frame = None
 
         #Frame para exibição
-        #frame_show = self.annoted_frame if self.annoted_frame is not None else frame
+        frame_show = self.annoted_frame if self.annoted_frame is not None else frame
 
-        cv.imshow('Detecção YOLO', frame)
+        #Envio dos dados para o algoritmo de EKF
+        self.ekf(self.annoted_frame)
+
+        cv.imshow('Detecção YOLO', frame_show)
         if cv.waitKey(1) == ord('q'):
             self.get_logger().info('Fechando janela')
             rclpy.shutdown()
+
+    def ekf(self, frame):
+        pass
 
 def main(args=None):
     rclpy.init(args=args)
