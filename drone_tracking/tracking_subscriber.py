@@ -20,9 +20,27 @@ class CameraShow(Node):
         #Definição de QoS pra reduzir delay na transmissão da câmera
         qos = QoSProfile(reliability=ReliabilityPolicy.BEST_EFFORT, history=HistoryPolicy.KEEP_LAST, depth=1)
 
-        #Definição de variáveis
+        #Definição de variáveis de detecção
         self.frame_c = 0
         self.annoted_frame = None
+
+        #Definição das variáveis do filtro
+        self.x = np.zeros((4, 1))                           #Matriz de variáveis (x, y, vx, vy)
+        self.P = np.eye(4) * 1000                           #Incerteza inicial alta
+        self.dt = 1/30.0                                    #Tempo discretizado para medições
+        self.F = np.array([                                 #Essa matriz assume velocidade constante em regime permanente (matriz de transição)
+            [1, 0, self.dt, 0],
+            [0, 1, 0, self.dt],
+            [0, 0, 1, 0],
+            [0, 0, 0, 1]
+        ])
+        self.H = np.array([                                 #Matriz de observação
+            [1, 0, 0, 0],
+            [0, 1, 0, 0]
+        ])
+        self.Q = np.eye(4) * 0.1                            #Ruído do processo
+        self.R = np.eye(2) * 5.0                            #Ruído do sensor
+
 
         # Subscriber para imagem comprimida
         self.camera_subscription = self.create_subscription(CompressedImage, '/camera/compressed', self.image_callback, qos)
@@ -49,15 +67,49 @@ class CameraShow(Node):
         frame_show = self.annoted_frame if self.annoted_frame is not None else frame
 
         #Envio dos dados para o algoritmo de EKF
-        self.ekf(self.annoted_frame)
+        pos = self.ekf(frame_show, results)
+        
+        x_pred, y_pred = int(pos[0, 0]), int(pos[1, 0])
+        cv.circle(frame_show, (x_pred, y_pred), 5, (0, 255, 0), -1)
 
         cv.imshow('Detecção YOLO', frame_show)
         if cv.waitKey(1) == ord('q'):
             self.get_logger().info('Fechando janela')
             rclpy.shutdown()
 
-    def ekf(self, frame):
-        pass
+    def ekf(self, frame, results):
+        #Detecção do centro das bouding boxes
+        if frame is not None:
+            centers = []
+            boxes = results[0].boxes.xyxy
+            for box in boxes:
+                x1, y1, x2, y2 = box.tolist()
+                cx = (x1 + x2) / 2
+                cy = (y1 + y2) / 2
+                centers.append((cx, cy))
+        
+        #Para frames onde não há medição de YOLO
+        if not centers:
+            self.x = self.F @ self.x                        #Estado atualizado
+            self.P = self.F @ self.P @ self.F.T + self.Q    #Covariancia atualizada
+            return self.x
+        
+        cx, cy = centers[-1]                                #Rever essa lógica pq se houver mais de um drone dá problema
+        
+        #Etapa de predição
+        x_pred = self.F @ self.x                            #Estado previsto
+        P_pred = self.F @ self.P @ self.F.T + self.Q        #Covariancia prevista
+
+        #Etapa de medição
+        z = np.array([[cx], [cy]])                          #Medição atual (vinda da YOLO)
+        y = z - self.H @ x_pred                             #Redíduo (diferença entre o que o filtro mediu e a medição da YOLO)
+        S = self.H @ P_pred @ self.H.T + self.R             #Incerteza da diferença entre o que foi previsto e medido
+        K = P_pred @ self.H.T @ np.linalg.inv(S)            #Ganho de Kalman
+
+        #Etapa de atualização
+        self.x = x_pred + K @ y
+        self.P = (np.eye(4) - K @ self.H) @ P_pred
+        return self.x
 
 def main(args=None):
     rclpy.init(args=args)
