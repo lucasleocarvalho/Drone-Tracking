@@ -17,6 +17,13 @@ class CameraShow(Node):
         cv.namedWindow("Detecção YOLO", cv.WINDOW_NORMAL)
         self.bridge = CvBridge()
 
+        #Import da rede neural
+        package_dir = get_package_share_directory('drone_tracking')
+        model_path = os.path.join(package_dir, 'net_train', 'weights', 'best.pt')
+        self.model = YOLO(model_path)
+        self.model.export(format="ncnn")
+        self.model = YOLO(os.path.join(package_dir, 'net_train', 'weights', 'best_ncnn_model'))
+
         #Definição de QoS pra reduzir delay na transmissão da câmera
         qos = QoSProfile(reliability=ReliabilityPolicy.BEST_EFFORT, history=HistoryPolicy.KEEP_LAST, depth=1)
 
@@ -49,11 +56,7 @@ class CameraShow(Node):
         # Converte imagem comprimida para cv2
         np_arr = np.frombuffer(msg.data, np.uint8)
         frame = cv.imdecode(np_arr, cv.IMREAD_COLOR)
-
-        #Import da rede neural
-        package_dir = get_package_share_directory('drone_tracking')
-        model_path = os.path.join(package_dir, 'net_train', 'weights', 'best.pt')
-        self.model = YOLO(model_path)
+        results = None
 
         #Detecção com YOLO
         self.frame_c += 1
@@ -79,8 +82,8 @@ class CameraShow(Node):
 
     def ekf(self, frame, results):
         #Detecção do centro das bouding boxes
-        if frame is not None:
-            centers = []
+        centers = []
+        if results is not None:
             boxes = results[0].boxes.xyxy
             for box in boxes:
                 x1, y1, x2, y2 = box.tolist()
