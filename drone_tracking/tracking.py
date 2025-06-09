@@ -1,4 +1,5 @@
 import rclpy
+import ncnn
 from rclpy.node import Node
 from rclpy.qos import QoSProfile, ReliabilityPolicy, HistoryPolicy
 import cv2 as cv
@@ -8,6 +9,7 @@ import os
 from ultralytics import YOLO
 from ament_index_python import get_package_share_directory
 import numpy as np
+from drone_tracking.run_ncnn import NCNNRunner
 
 
 class Detection(Node):
@@ -41,7 +43,7 @@ class Detection(Node):
        # model_path = os.path.join(package_dir, 'net_train', 'weights', 'best.pt')
        # self.model = YOLO(model_path)
        # self.model.export(format="ncnn")
-        self.model = YOLO(os.path.join(package_dir, 'net_train', 'weights', 'best_ncnn_model'))
+        self.model = NCNNRunner(os.path.join(package_dir, 'net_train', 'weights'))
 
         #Timer para 30 FPS
         timer_period = 1.0 / 30.0
@@ -57,7 +59,7 @@ class Detection(Node):
         #Detecção com YOLO
         self.frame_c += 1
         if self.frame_c % 10 == 0:
-            results = self.model(source=frame, verbose=False, conf=0.5)
+            boxes, scores, classes = self.model.run(frame)
             #self.annoted_frame = np.array(results[0])
         #else:
             #self.annoted_frame = None
@@ -66,7 +68,7 @@ class Detection(Node):
         #frame_show = self.annoted_frame if self.annoted_frame is not None else frame
 
         #Converte para imagem comprimida (JPEG)
-        ros_compressed_image = self.bridge.cv2_to_compressed_imgmsg(frame, dst_format='jpeg', jpeg_quality=70)
+        ros_compressed_image = self.bridge.cv2_to_compressed_imgmsg(frame, dst_format='jpeg')
         self.camera_publishing.publish(ros_compressed_image)
 
     def destroy_node(self):

@@ -25,7 +25,8 @@ setup(
     entry_points={
         'console_scripts': [
             'tracking = drone_tracking.tracking:main',
-            'tracking_subscriber = drone_tracking.tracking_subscriber:main'
+            'tracking_subscriber = drone_tracking.tracking_subscriber:main',
+            'run_ncnn = drone_tracking.run_ncnn:main'
         ],
     },
 )
