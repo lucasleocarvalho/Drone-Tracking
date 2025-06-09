@@ -2,7 +2,7 @@ import rclpy
 from rclpy.node import Node
 from rclpy.qos import QoSProfile, ReliabilityPolicy, HistoryPolicy
 import cv2 as cv
-from sensor_msgs.msg import CompressedImage, Image
+from sensor_msgs.msg import CompressedImage
 from cv_bridge import CvBridge
 import os
 from ultralytics import YOLO
@@ -29,7 +29,7 @@ class Detection(Node):
         self.get_logger().info(f"FPS configurado na câmera: {fps}")
 
         #Publisher de imagem
-        self.camera_publishing = self.create_publisher(Image, '/camera/image_raw', qos)
+        self.camera_publishing = self.create_publisher(CompressedImage, '/camera/image_raw', qos)
         self.bridge = CvBridge()
 
         #Variáveis de controle
@@ -66,7 +66,7 @@ class Detection(Node):
         #frame_show = self.annoted_frame if self.annoted_frame is not None else frame
 
         #Converte para imagem comprimida (JPEG)
-        ros_compressed_image = self.bridge.cv2_to_imgmsg(frame)
+        ros_compressed_image = self.bridge.cv2_to_compressed_imgmsg(frame, dst_format='jpeg')
         self.camera_publishing.publish(ros_compressed_image)
 
     def destroy_node(self):
