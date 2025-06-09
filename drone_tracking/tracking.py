@@ -9,7 +9,7 @@ import os
 from ultralytics import YOLO
 from ament_index_python import get_package_share_directory
 import numpy as np
-from drone_tracking.run_ncnn import NCNNRunner
+#from drone_tracking.run_ncnn import NCNNRunner
 
 
 class Detection(Node):
@@ -43,7 +43,7 @@ class Detection(Node):
        # model_path = os.path.join(package_dir, 'net_train', 'weights', 'best.pt')
        # self.model = YOLO(model_path)
        # self.model.export(format="ncnn")
-        self.model = NCNNRunner(os.path.join(package_dir, 'net_train', 'weights'))
+        #self.model = NCNNRunner(os.path.join(package_dir, 'net_train', 'weights'))
 
         #Timer para 30 FPS
         timer_period = 1.0 / 30.0
@@ -57,9 +57,9 @@ class Detection(Node):
 
 
         #Detecção com YOLO
-        self.frame_c += 1
-        if self.frame_c % 10 == 0:
-            boxes, scores, classes = self.model.run(frame)
+        #self.frame_c += 1
+        #if self.frame_c % 10 == 0:
+            #boxes, scores, classes = self.model.run(frame)
             #self.annoted_frame = np.array(results[0])
         #else:
             #self.annoted_frame = None
@@ -74,7 +74,7 @@ class Detection(Node):
     def destroy_node(self):
         # Libera recursos ao encerrar
         self.cap.release()
-        cv.destroyAllWindows()
+        #cv.destroyAllWindows()
         super().destroy_node()
 
 
