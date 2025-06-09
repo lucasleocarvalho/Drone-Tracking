@@ -66,7 +66,7 @@ class Detection(Node):
         #frame_show = self.annoted_frame if self.annoted_frame is not None else frame
 
         #Converte para imagem comprimida (JPEG)
-        #ros_compressed_image = self.bridge.cv2_to_compressed_imgmsg(frame, dst_format='jpeg')
+        ros_compressed_image = self.bridge.cv2_to_imgmsg(frame, dst_format='jpeg')
         self.camera_publishing.publish(frame)
 
     def destroy_node(self):
