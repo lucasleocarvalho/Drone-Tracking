@@ -38,9 +38,9 @@ class Detection(Node):
 
         #Import da rede neural
         package_dir = get_package_share_directory('drone_tracking')
-        model_path = os.path.join(package_dir, 'net_train', 'weights', 'best.pt')
-        self.model = YOLO(model_path)
-        self.model.export(format="ncnn")
+       # model_path = os.path.join(package_dir, 'net_train', 'weights', 'best.pt')
+       # self.model = YOLO(model_path)
+       # self.model.export(format="ncnn")
         self.model = YOLO(os.path.join(package_dir, 'net_train', 'weights', 'best_ncnn_model'))
 
         #Timer para 30 FPS
@@ -56,7 +56,7 @@ class Detection(Node):
 
         #Detecção com YOLO
         self.frame_c += 1
-        if self.frame_c % 3 == 0:
+        if self.frame_c % 10 == 0:
             results = self.model(frame, verbose=False, conf=0.5)
             self.annoted_frame = np.array(results[0].plot())
         else:
