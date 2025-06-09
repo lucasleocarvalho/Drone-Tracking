@@ -29,7 +29,7 @@ class Detection(Node):
         self.get_logger().info(f"FPS configurado na câmera: {fps}")
 
         #Publisher de imagem
-        self.camera_publishing = self.create_publisher(CompressedImage, '/camera/compressed', qos)
+        self.camera_publishing = self.create_publisher(CompressedImage, '/camera/image_raw', qos)
         self.bridge = CvBridge()
 
         #Variáveis de controle
@@ -57,7 +57,7 @@ class Detection(Node):
         #Detecção com YOLO
         self.frame_c += 1
         if self.frame_c % 10 == 0:
-            results = self.model(frame, verbose=False, conf=0.5)
+            results = self.model(source=frame, verbose=False, conf=0.5)
             #self.annoted_frame = np.array(results[0])
         #else:
             #self.annoted_frame = None
@@ -66,8 +66,8 @@ class Detection(Node):
         #frame_show = self.annoted_frame if self.annoted_frame is not None else frame
 
         #Converte para imagem comprimida (JPEG)
-        ros_compressed_image = self.bridge.cv2_to_compressed_imgmsg(frame, dst_format='jpeg')
-        self.camera_publishing.publish(ros_compressed_image)
+        #ros_compressed_image = self.bridge.cv2_to_compressed_imgmsg(frame, dst_format='jpeg')
+        self.camera_publishing.publish(frame)
 
     def destroy_node(self):
         # Libera recursos ao encerrar
