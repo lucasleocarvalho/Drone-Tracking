@@ -1,5 +1,4 @@
 import rclpy
-import ncnn
 from rclpy.node import Node
 from rclpy.qos import QoSProfile, ReliabilityPolicy, HistoryPolicy
 import cv2 as cv
