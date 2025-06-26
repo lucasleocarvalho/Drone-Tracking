@@ -19,7 +19,7 @@ public:
 
         // Inicializa câmera
         cap_.open(0, cv::CAP_V4L2);
-        
+        cap_.set(cv::CAP_PROP_FPS, 30);
         cap_.set(cv::CAP_PROP_FRAME_WIDTH, 640);
         cap_.set(cv::CAP_PROP_FRAME_HEIGHT, 480);
         cap_.set(cv::CAP_PROP_BUFFERSIZE, 1);
@@ -37,7 +37,7 @@ public:
         publisher_ = this->create_publisher<sensor_msgs::msg::CompressedImage>("/camera/compressed", qos);
 
         // Timer para captura
-        timer_ = this->create_wall_timer(15ms, std::bind(&DetectionNode::capture_callback, this));
+        timer_ = this->create_wall_timer(33ms, std::bind(&DetectionNode::capture_callback, this));
     }
 
     ~DetectionNode() {
