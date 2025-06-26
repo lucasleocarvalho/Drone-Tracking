@@ -37,7 +37,7 @@ public:
         publisher_ = this->create_publisher<sensor_msgs::msg::CompressedImage>("/camera/compressed", qos);
 
         // Timer para captura
-        timer_ = this->create_wall_timer(33ms, std::bind(&DetectionNode::capture_callback, this));
+        timer_ = this->create_wall_timer(60ms, std::bind(&DetectionNode::capture_callback, this));
     }
 
     ~DetectionNode() {
