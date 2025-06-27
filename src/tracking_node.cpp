@@ -19,6 +19,11 @@ public:
 
         // Inicializa câmera
         cap.open(0, cv::CAP_V4L2);
+        if (!cap.isOpened()) {
+            RCLCPP_ERROR(this->get_logger(), "Falha ao abrir a câmera");
+            rclcpp::shutdown();
+            return;
+        }
         cap.set(cv::CAP_PROP_FPS, 30);
         cap.set(cv::CAP_PROP_FRAME_WIDTH, 640);
         cap.set(cv::CAP_PROP_FRAME_HEIGHT, 480);
@@ -34,7 +39,7 @@ public:
         std::string package_path = ament_index_cpp::get_package_share_directory("drone_tracking");
         std::string model_path_param = package_path + "/net_train/weights/best.param";
         std::string model_path_bin = package_path + "/net_train/weights/best.bin";
-        if (yolo_net.load_param(model_path_param.c_str()) || yolo_net.load_model(model_path_bin.c_str())) {
+        if (yolo_net.load_param(model_path_param.c_str()) != 0 || yolo_net.load_model(model_path_bin.c_str()) != 0) {
             RCLCPP_ERROR(this->get_logger(), "Falha ao carregar modelo YOLO (NCNN).");
         } else {
             RCLCPP_INFO(this->get_logger(), "Modelo YOLO carregado com sucesso.");
@@ -78,16 +83,25 @@ private:
     }
 
     void run_yolo(const cv::Mat &frame, cv::Mat &output) {
-        ncnn::Mat in = ncnn::Mat::from_pixels(frame.data, ncnn::Mat::PIXEL_BGR, frame.cols, frame.rows);
+        // Converte BGR para RGB (ajuste se seu modelo espera BGR)
+        cv::Mat rgb;
+        cv::cvtColor(frame, rgb, cv::COLOR_BGR2RGB);
+
+        ncnn::Mat in = ncnn::Mat::from_pixels(rgb.data, ncnn::Mat::PIXEL_RGB, rgb.cols, rgb.rows);
 
         ncnn::Extractor ex = yolo_net.create_extractor();
-        ex.input("images", in);
+        ex.input("in0", in);
 
         ncnn::Mat out;
-        ex.extract("output", out);  // Ajuste conforme o nome da saída no modelo
+        int ret = ex.extract("out0", out);
+        if (ret != 0 || out.empty()) {
+            RCLCPP_WARN(this->get_logger(), "Falha na extração do output ou output vazio");
+            output = frame.clone();
+            return;
+        }
 
-        // Processamento simples do output (mock)
         output = frame.clone();
+
         for (int i = 0; i < out.h; i++) {
             const float* values = out.row(i);
             float x = values[2] * frame.cols;

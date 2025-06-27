@@ -13,9 +13,11 @@ find_package(std_msgs REQUIRED)
 find_package(sensor_msgs REQUIRED)
 find_package(cv_bridge REQUIRED)
 find_package(OpenCV REQUIRED)
+find_package(OpenMP REQUIRED)  # <-- Adicionado suporte OpenMP
 
 # Adiciona o executável C++
 add_executable(tracking_node src/tracking_node.cpp)
+
 ament_target_dependencies(tracking_node
   rclcpp
   std_msgs
@@ -28,14 +30,11 @@ target_include_directories(tracking_node PUBLIC
   ${OpenCV_INCLUDE_DIRS}
 )
 
-# Linka as libs do OpenCV
+# Linka as libs do OpenCV, NCNN e OpenMP (removida duplicação)
 target_link_libraries(tracking_node
-  ${OpenCV_LIBS}
-)
-
-target_link_libraries(detection_node
   ${OpenCV_LIBRARIES}
   ncnn
+  OpenMP::OpenMP_CXX
 )
 
 # Instala o executável
