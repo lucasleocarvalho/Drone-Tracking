@@ -33,6 +33,11 @@ target_link_libraries(tracking_node
   ${OpenCV_LIBS}
 )
 
+target_link_libraries(detection_node
+  ${OpenCV_LIBRARIES}
+  ncnn
+)
+
 # Instala o executável
 install(TARGETS
   tracking_node
