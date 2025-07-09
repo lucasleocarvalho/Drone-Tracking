@@ -24,8 +24,10 @@ ament_target_dependencies(tracking_node
   std_msgs
   sensor_msgs
   cv_bridge
+  OpenCV
 )
 
+include_directories(${OpenCV_INCLUDE_DIRS})
 target_include_directories(tracking_node PUBLIC
   ${OpenCV_INCLUDE_DIRS}
 )

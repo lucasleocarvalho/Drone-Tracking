@@ -225,8 +225,6 @@ tracking_node: /usr/lib/x86_64-linux-gnu/libopencv_flann.so.4.5.4d
 tracking_node: /usr/lib/x86_64-linux-gnu/libopencv_photo.so.4.5.4d
 tracking_node: /usr/lib/x86_64-linux-gnu/libopencv_imgproc.so.4.5.4d
 tracking_node: /usr/lib/x86_64-linux-gnu/libopencv_core.so.4.5.4d
-tracking_node: /usr/lib/gcc/x86_64-linux-gnu/11/libgomp.so
-tracking_node: /usr/lib/x86_64-linux-gnu/libpthread.a
 tracking_node: CMakeFiles/tracking_node.dir/link.txt
 	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --bold --progress-dir=/home/lacea/ros2_ws/src/Drone-Tracking/build/drone_tracking_cpp/CMakeFiles --progress-num=$(CMAKE_PROGRESS_2) "Linking CXX executable tracking_node"
 	$(CMAKE_COMMAND) -E cmake_link_script CMakeFiles/tracking_node.dir/link.txt --verbose=$(VERBOSE)

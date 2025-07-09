@@ -35,7 +35,7 @@
 			{
 				"command" : 1,
 				"file" : 0,
-				"line" : 39,
+				"line" : 37,
 				"parent" : 0
 			},
 			{
@@ -52,9 +52,9 @@
 			},
 			{
 				"command" : 2,
-				"file" : 0,
-				"line" : 33,
-				"parent" : 0
+				"file" : 1,
+				"line" : 151,
+				"parent" : 3
 			},
 			{
 				"command" : 4,
@@ -64,22 +64,15 @@
 			},
 			{
 				"command" : 4,
-				"file" : 0,
-				"line" : 29,
-				"parent" : 0
+				"file" : 1,
+				"line" : 147,
+				"parent" : 3
 			}
 		]
 	},
 	"compileGroups" : 
 	[
 		{
-			"compileCommandFragments" : 
-			[
-				{
-					"backtrace" : 5,
-					"fragment" : "-fopenmp"
-				}
-			],
 			"defines" : 
 			[
 				{
@@ -470,11 +463,6 @@
 			{
 				"backtrace" : 5,
 				"fragment" : "/usr/lib/x86_64-linux-gnu/libopencv_xphoto.so.4.5.4d",
-				"role" : "libraries"
-			},
-			{
-				"backtrace" : 5,
-				"fragment" : "-lncnn",
 				"role" : "libraries"
 			},
 			{
@@ -898,14 +886,6 @@
 			{
 				"backtrace" : 5,
 				"fragment" : "/usr/lib/x86_64-linux-gnu/libopencv_core.so.4.5.4d",
-				"role" : "libraries"
-			},
-			{
-				"fragment" : "/usr/lib/gcc/x86_64-linux-gnu/11/libgomp.so",
-				"role" : "libraries"
-			},
-			{
-				"fragment" : "/usr/lib/x86_64-linux-gnu/libpthread.a",
 				"role" : "libraries"
 			}
 		],
