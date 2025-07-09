@@ -30,11 +30,7 @@ target_include_directories(tracking_node PUBLIC
   ${OpenCV_INCLUDE_DIRS}
 )
 
-target_link_libraries(tracking_node
-  ${OpenCV_LIBRARIES}
-  ncnn
-  OpenMP::OpenMP_CXX
-)
+
 
 install(TARGETS
   tracking_node
