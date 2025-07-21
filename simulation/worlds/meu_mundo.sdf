@@ -1,0 +1,175 @@
+<?xml version="1.0" ?>
+<sdf version="1.8">
+    <world name="meu_mundo">
+        <!--INICIO DOS PLUGINS DO MUNDO-->
+        <plugin
+	    filename="libignition-gazebo-sensors-system"
+	    name="ignition::gazebo::systems::Sensors">
+	    <render_engine>ogre2</render_engine>
+        </plugin>
+        
+        <plugin
+            filename="libignition-gazebo-physics-system"
+            name="ignition::gazebo::systems::Physics">
+        </plugin>
+
+        <plugin
+            filename="libignition-gazebo-scene-broadcaster-system"
+            name="ignition::gazebo::systems::SceneBroadcaster">
+        </plugin>
+
+        <physics name="1ms" type="ignored">
+            <max_step_size>0.001</max_step_size>
+            <real_time_factor>1.0</real_time_factor>
+        </physics>
+       
+        <plugin
+            filename="libignition-gazebo-user-commands-system.so"
+            name="ignition::gazebo::systems::UserCommands">
+        </plugin>
+        
+        <plugin filename="libignition-gazebo-triggered-publisher-system.so"
+                name="ignition::gazebo::systems::TriggeredPublisher">
+	    <input type="ignition.msgs.Boolean" topic="/wall/touched">
+	        <match>data: true</match>
+	    </input>
+	    <output type="ignition.msgs.Twist" topic="/cmd_vel">
+	        linear: {x: 0.0}, angular: {z: 0.0}
+	    </output>
+	</plugin>
+
+	
+        <!--FIM DOS PLUGINS DO MUNDO-->
+       
+
+        <light type="directional" name="sun">
+            <cast_shadows>true</cast_shadows>
+            <pose>0 0 10 0 0 0</pose>
+            <diffuse>0.8 0.8 0.8 1</diffuse>
+            <specular>0.2 0.2 0.2 1</specular>
+            <attenuation>
+                <range>1000</range>
+                <constant>0.9</constant>
+                <linear>0.01</linear>
+                <quadratic>0.001</quadratic>
+            </attenuation>
+            <direction>-0.5 0.1 -0.9</direction>
+        </light>
+
+        <model name="ground_plane">
+            <static>true</static>
+            <link name="link">
+                <collision name="collision">
+                <geometry>
+                    <plane>
+                    <normal>0 0 1</normal>
+                    </plane>
+                </geometry>
+                </collision>
+                <visual name="visual">
+                <geometry>
+                    <plane>
+                    <normal>0 0 1</normal>
+                    <size>100 100</size>
+                    </plane>
+                </geometry>
+                <material>
+                    <ambient>0.8 0.8 0.8 1</ambient>
+                    <diffuse>0.8 0.8 0.8 1</diffuse>
+                    <specular>0.8 0.8 0.8 1</specular>
+                </material>
+                </visual>
+            </link>
+        </model>
+
+        <model name='wall'>
+            <static>true</static>
+            <pose>5 0 0 0 0 0</pose><!--pose relative to the world-->
+            <link name='box'>
+                <visual name='visual'>
+                    <geometry>
+                        <box>
+                            <size>0.5 0.5 0.5</size>
+                        </box>
+                    </geometry>
+                    <material>
+                        <ambient>0.0 0.0 1.0 1</ambient>
+                        <diffuse>0.0 0.0 1.0 1</diffuse>
+                        <specular>0.0 0.0 1.0 1</specular>
+                    </material>
+                </visual>
+                <collision name='collision'>
+                    <geometry>
+                        <box>
+                            <size>0.5 0.5 0.5</size>
+                        </box>
+                    </geometry>
+                </collision>
+
+                <sensor type="camera" name="camera">
+	                <pose relative_to="box">0.0 0.0 0.7 3.1415/2 0 0</pose>
+	                <topic>camera</topic>
+        	        <update_rate>30.0</update_rate>
+	                <camera name="head">
+	                    <horizontal_fov>1.3962634</horizontal_fov>
+	                    <image>
+	                        <width>800</width>
+	                        <height>800</height>
+	                        <format>R8G8B8</format>
+	                    </image>
+	                    <clip>
+	                        <near>0.02</near>
+	                        <far>300</far>
+	                    </clip>
+	                    <noise>
+	                        <type>gaussian</type>
+	                        <mean>0.0</mean>
+	                        <stddev>0.007</stddev>
+	                    </noise>
+	                </camera>
+	            </sensor>
+            </link>
+
+            <link name="camera">
+                <pose relative_to="box">0.0 0 0.30 3.1415/2 0 0</pose>
+                <visual name='visual'>
+                    <geometry>
+                        <box>
+                            <size>0.1 0.1 0.1</size>
+                        </box>
+                    </geometry>
+                    <material>
+                        <ambient>1.0 0.0 0.0 1</ambient>
+                        <diffuse>1.0 0.0 0.0 1</diffuse>
+                        <specular>1.0 0.0 0.0 1</specular>
+                    </material>
+                </visual>
+                <collision name='collision'>
+                    <geometry>
+                        <box>
+                            <size>0.1 0.1 0.1</size>
+                        </box>
+                    </geometry>
+                </collision>
+                <inertial>
+                    <mass>0.1</mass>
+                    <inertia>
+                        <ixx>0.043333</ixx>
+                        <ixy>0</ixy>
+                        <ixz>0</ixz>
+                        <iyy>0.043333</iyy>
+                        <iyz>0</iyz>
+                        <izz>0.08</izz>
+                    </inertia>
+                </inertial>
+            </link>
+            
+            <joint name='camera_joint' type="fixed">
+                <origin xyz="0.0 0.0 0.30" rpy="0 0 0"/>
+                <parent>box</parent>
+                <child>camera</child>
+            </joint>
+
+        </model>
+    </world>
+</sdf>

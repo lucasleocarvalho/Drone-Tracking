@@ -15,6 +15,12 @@ class CameraShow(Node):
     def __init__(self):
         super().__init__('camera_show')
         cv.namedWindow("Detecção YOLO", cv.WINDOW_NORMAL)
+        output_file = 'deteccao_yolo.avi'
+        fourcc = cv.VideoWriter_fourcc(*'MJPG')  
+        fps = 30
+        frame_size = (640, 480)  
+        self.video_writer = cv.VideoWriter(output_file, fourcc, fps, frame_size)
+
         self.bridge = CvBridge()
 
         #Import da rede neural
@@ -53,7 +59,7 @@ class CameraShow(Node):
         self.camera_subscription = self.create_subscription(CompressedImage, '/camera/compressed', self.image_callback, qos)
     
     def image_callback(self, msg):
-        # Converte imagem comprimida para cv2
+        # Converte imagROPOSEDem comprimida para cv2
         np_arr = np.frombuffer(msg.data, np.uint8)
         frame = cv.imdecode(np_arr, cv.IMREAD_COLOR)
         results = None
@@ -73,12 +79,15 @@ class CameraShow(Node):
         pos = self.ekf(frame_show, results)
         
         x_pred, y_pred = int(pos[0, 0]), int(pos[1, 0])
-        cv.circle(frame_show, (x_pred, y_pred), 5, (0, 255, 0), -1)
+        #cv.circle(frame_show, (x_pred, y_pred), 5, (0, 255, 0), -1)
+        #self.video_writer.write(frame_show)
 
         cv.imshow('Detecção YOLO', frame_show)
         if cv.waitKey(1) == ord('q'):
             self.get_logger().info('Fechando janela')
             rclpy.shutdown()
+            self.video_writer.release()
+            cv.destroyAllWindows()
 
     def ekf(self, frame, results):
         #Detecção do centro das bouding boxes
@@ -93,8 +102,8 @@ class CameraShow(Node):
         
         #Para frames onde não há medição de YOLO
         if not centers:
-            self.x = self.F @ self.x                        #Estado atualizado
-            self.P = self.F @ self.P @ self.F.T + self.Q    #Covariancia atualizada
+            self.x = self.F @ self.x                        #Estado anterior para quando não há medição da yolo
+            self.P = self.F @ self.P @ self.F.T + self.Q    #Covariancia anterior para quando não há medição da yolo
             return self.x
         
         cx, cy = centers[-1]                                #Rever essa lógica pq se houver mais de um drone dá problema
@@ -120,6 +129,7 @@ def main(args=None):
     rclpy.spin(node)
     node.destroy_node()
     rclpy.shutdown()
+    
 
 if __name__ == '__main__':
     main()
