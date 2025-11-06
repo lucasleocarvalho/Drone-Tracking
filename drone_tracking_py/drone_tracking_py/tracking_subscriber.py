@@ -10,6 +10,79 @@ from ament_index_python import get_package_share_directory
 import os
 
 
+class YoloDetection:
+    def __init__(self):
+        package_dir = get_package_share_directory('drone_tracking_py')
+        model_path = os.path.join(package_dir, 'net_train', 'weights', 'best.pt')
+        self.model = YOLO(model_path)
+    
+    def detection(self, img):
+        results = self.model(img, verbose=False, conf=0.5)
+        annoted_frame = np.array(results[0].plot())
+        return results, annoted_frame
+    
+    def bb_centers(self, img):
+        bounding_box, annoted_frame = self.detection(img)
+        centers = []
+        if bounding_box is not None:
+            boxes = bounding_box[0].boxes.xyxy
+            for box in boxes:
+                x1, y1, x2, y2 = box.tolist()
+                cx = (x1 + x2) / 2
+                cy = (y1 + y2) / 2
+                centers.append((cx, cy))
+                
+        if not bounding_box or not bounding_box[0].boxes.xyxy.shape[0]:
+            return [], annoted_frame
+
+        
+        return centers, annoted_frame
+
+
+
+class KalmanFilter:
+    def __init__(self, dt):
+        self.x = np.zeros((8, 1))                                   #px, py, h, vx, vy, vh, ax, ay -> variaveis 
+        self.P = np.eye(8) * 1000                                   #matriz diagonal com valor 1000 -> incerteza
+        self.dt = dt                                                #intervalo de tempo
+        self.Q = np.eye(8) * 0.1                                    #matriz de covariancia do modelo -> representa a covariancia dos ruidos e perturbações do processo (modelo)
+        self.R = np.eye(3) * 5.0                                    #matriz de covariancia do sensor -> diz o quanto vc confia na medição do sensor
+
+        self.F = np.array([                                         #matriz de transição de estados
+            [1, 0, 0, self.dt, 0, 0, 0.5*self.dt**2, 0],
+            [0, 1, 0, 0, self.dt, 0, 0, 0.5*self.dt**2],
+            [0, 0, 1, 0, 0, self.dt, 0, 0],
+            [0, 0, 0, 1, 0, 0, self.dt, 0],
+            [0, 0, 0, 0, 1, 0, 0, self.dt],
+            [0, 0, 0, 0, 0, 1, 0, 0],
+            [0, 0, 0, 0, 0, 0, 1, 0],
+            [0, 0, 0, 0, 0, 0, 0, 1]
+        ])
+        self.H = np.array([                                         #matriz de observação -> define oq vc realmente consegue medir
+            [1, 0, 0, 0, 0, 0, 0, 0],
+            [0, 1, 0, 0, 0, 0, 0, 0],
+            [0, 0, 1, 0, 0, 0, 0, 0]
+        ])
+    
+    def algorithm(self, z):
+        x_next = self.F @ self.x
+        P_next = self.F @ self.P @ self.F.T + self.Q
+
+        K = P_next @ self.H.T @ np.linalg.inv(self.H @ P_next @ self.H.T + self.R)
+        self.x = x_next + K @ (z - self.H @ x_next)   
+        self.P = (np.eye(8) - K @ self.H) @ P_next
+
+        return self.x
+    
+
+
+class TrackerNode(Node):
+    def __init__(self):
+        pass
+
+    ########################    ESTOU REMODELANDO TD, ESTAMOS EM OBRAS      #################################
+        
+
 class CameraShow(Node):
     
     def __init__(self):
